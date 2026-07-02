@@ -37,32 +37,87 @@
     <!-- Main Grid Layout -->
     <div class="grid-layout">
       
-      <!-- Countdown Panel -->
-      <section class="panel glass-panel countdown-panel" id="countdown-sec">
-        <h2 class="panel-title">Time Remaining</h2>
-        <div class="countdown-timer">
-          <div class="timer-card" id="card-days">
-            <span class="timer-number" id="days">00</span>
-            <span class="timer-label">Days</span>
+      <!-- Left Column Group -->
+      <div class="left-column">
+        <!-- Countdown Panel -->
+        <section class="panel glass-panel countdown-panel" id="countdown-sec">
+          <h2 class="panel-title">Time Remaining</h2>
+          <div class="countdown-timer">
+            <div class="timer-card" id="card-days">
+              <span class="timer-number" id="days">00</span>
+              <span class="timer-label">Days</span>
+            </div>
+            <div class="timer-card" id="card-hours">
+              <span class="timer-number" id="hours">00</span>
+              <span class="timer-label">Hours</span>
+            </div>
+            <div class="timer-card" id="card-minutes">
+              <span class="timer-number" id="minutes">00</span>
+              <span class="timer-label">Mins</span>
+            </div>
+            <div class="timer-card" id="card-seconds">
+              <span class="timer-number" id="seconds">00</span>
+              <span class="timer-label">Secs</span>
+            </div>
           </div>
-          <div class="timer-card" id="card-hours">
-            <span class="timer-number" id="hours">00</span>
-            <span class="timer-label">Hours</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-fill"></div>
           </div>
-          <div class="timer-card" id="card-minutes">
-            <span class="timer-number" id="minutes">00</span>
-            <span class="timer-label">Mins</span>
+          <p class="progress-text" id="progress-pct">0% of the wait is complete</p>
+        </section>
+
+        <!-- Music Player Panel -->
+        <section class="panel glass-panel music-panel" id="music-sec">
+          <h2 class="panel-title">Background Music</h2>
+          <div class="player-container">
+            <!-- Hidden YouTube Player Iframe -->
+            <div id="youtube-player-container" class="yt-hidden"></div>
+            
+            <div class="player-layout">
+              <!-- Vinyl Graphic -->
+              <div class="vinyl-record" id="vinyl-disc">
+                <div class="vinyl-center"></div>
+              </div>
+              
+              <!-- Track Details -->
+              <div class="track-details">
+                <span class="track-title" id="track-title">Select Play to start</span>
+                <span class="track-artist" id="track-artist">Your Favorite Songs</span>
+              </div>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls">
+              <button class="player-btn" id="prev-track" title="Previous Song">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+              </button>
+              <button class="player-btn play-pause-btn" id="play-pause-track" title="Play/Pause">
+                <svg id="play-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+              </button>
+              <button class="player-btn" id="next-track" title="Next Song">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+              </button>
+            </div>
+
+            <!-- Audio Slider / Progress -->
+            <div class="audio-progress-container">
+              <span class="time-label current-time" id="player-current-time">0:00</span>
+              <input type="range" class="audio-progress-slider" id="player-slider" min="0" max="100" value="0">
+              <span class="time-label total-duration" id="player-total-duration">0:00</span>
+            </div>
+
+            <!-- Volume Controls -->
+            <div class="volume-container">
+              <button class="player-btn volume-btn" id="volume-toggle" title="Mute/Unmute">
+                <svg id="volume-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <svg id="volume-off" class="hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+              </button>
+              <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
+            </div>
           </div>
-          <div class="timer-card" id="card-seconds">
-            <span class="timer-number" id="seconds">00</span>
-            <span class="timer-label">Secs</span>
-          </div>
-        </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" id="progress-fill"></div>
-        </div>
-        <p class="progress-text" id="progress-pct">0% of the wait is complete</p>
-      </section>
+        </section>
+      </div>
 
       <!-- Daily Messages Panel -->
       <section class="panel glass-panel message-panel" id="message-sec">

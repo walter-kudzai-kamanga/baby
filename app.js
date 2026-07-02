@@ -36,6 +36,20 @@ function getCountdownDay() {
 let currentViewedDay = getCountdownDay();
 let lockTimerInterval = null;
 
+// Background Music Playlist
+const playlist = [
+  { id: "J-HCEEheMOY", title: "Ndoda (I Do)", artist: "Nyasha David" },
+  { id: "5QnPWtfuT9U", title: "Gara Ndichauya", artist: "Voltz JT ft. Nyasha David" },
+  { id: "3Z7p-5fY-40", title: "Unobvuma Here", artist: "Nox ft. Freeman HKD & Tyfah Guni" },
+  { id: "pVUAVmu8YuI", title: "My Melody", artist: "Nox ft. Master KG" }
+];
+
+let currentTrackIndex = 0;
+let ytPlayer = null;
+let isPlaying = false;
+let isMuted = false;
+let progressUpdateInterval = null;
+
 // DOM Elements
 const daysEl = document.getElementById("days");
 const hoursEl = document.getElementById("hours");
@@ -59,6 +73,23 @@ const lockCountdownEl = document.getElementById("lock-countdown");
 
 const heartsContainer = document.getElementById("hearts-container");
 
+// Music Player DOM Elements
+const trackTitleEl = document.getElementById("track-title");
+const trackArtistEl = document.getElementById("track-artist");
+const playIcon = document.getElementById("play-icon");
+const pauseIcon = document.getElementById("pause-icon");
+const playPauseBtn = document.getElementById("play-pause-track");
+const prevTrackBtn = document.getElementById("prev-track");
+const nextTrackBtn = document.getElementById("next-track");
+const vinylDisc = document.getElementById("vinyl-disc");
+const playerSlider = document.getElementById("player-slider");
+const currentTimeEl = document.getElementById("player-current-time");
+const totalDurationEl = document.getElementById("player-total-duration");
+const volumeToggleBtn = document.getElementById("volume-toggle");
+const volumeOnIcon = document.getElementById("volume-on");
+const volumeOffIcon = document.getElementById("volume-off");
+const volumeSlider = document.getElementById("volume-slider");
+
 // Initialize application
 function init() {
   updateCountdown();
@@ -66,6 +97,7 @@ function init() {
   
   renderMessage();
   setupEventListeners();
+  setupPlayerEvents();
   
   // Background particles
   initHearts();
@@ -276,3 +308,203 @@ function createHeart(scattered = false) {
 
 // Start the app on load
 window.addEventListener("DOMContentLoaded", init);
+
+// ==========================================
+// BACKGROUND MUSIC PLAYER LOGIC
+// ==========================================
+
+// Load the YouTube Player API asynchronously
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName("script")[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+// This function is automatically triggered by the YouTube Iframe API when ready
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player("youtube-player-container", {
+    height: "1",
+    width: "1",
+    videoId: playlist[currentTrackIndex].id,
+    playerVars: {
+      playsinline: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      rel: 0,
+      modestbranding: 1
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+      onError: onPlayerError
+    }
+  });
+};
+
+function onPlayerReady(event) {
+  // Set initial volume
+  ytPlayer.setVolume(volumeSlider.value);
+  updateTrackUI();
+}
+
+function onPlayerStateChange(event) {
+  // State 1 = Playing, 2 = Paused, 0 = Ended
+  if (event.data === YT.PlayerState.PLAYING) {
+    isPlaying = true;
+    playIcon.classList.add("hidden");
+    pauseIcon.classList.remove("hidden");
+    vinylDisc.classList.add("playing");
+    startProgressTimer();
+  } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.BUFFERING) {
+    isPlaying = false;
+    playIcon.classList.remove("hidden");
+    pauseIcon.classList.add("hidden");
+    vinylDisc.classList.remove("playing");
+    stopProgressTimer();
+  } else if (event.data === YT.PlayerState.ENDED) {
+    nextTrack();
+  }
+}
+
+function onPlayerError(event) {
+  console.error("YouTube Player Error:", event.data);
+  // Auto-skip to the next song if there's an issue loading this one
+  setTimeout(nextTrack, 1500);
+}
+
+// Track details display updater
+function updateTrackUI() {
+  const track = playlist[currentTrackIndex];
+  trackTitleEl.textContent = track.title;
+  trackArtistEl.textContent = track.artist;
+  playerSlider.value = 0;
+  currentTimeEl.textContent = "0:00";
+  totalDurationEl.textContent = "0:00";
+}
+
+function playTrack() {
+  if (!ytPlayer) return;
+  ytPlayer.playVideo();
+}
+
+function pauseTrack() {
+  if (!ytPlayer) return;
+  ytPlayer.pauseVideo();
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    pauseTrack();
+  } else {
+    playTrack();
+  }
+}
+
+function nextTrack() {
+  if (!ytPlayer) return;
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  ytPlayer.loadVideoById(playlist[currentTrackIndex].id);
+  updateTrackUI();
+}
+
+function prevTrack() {
+  if (!ytPlayer) return;
+  currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+  ytPlayer.loadVideoById(playlist[currentTrackIndex].id);
+  updateTrackUI();
+}
+
+// Progress Bar & Duration formatting
+function startProgressTimer() {
+  stopProgressTimer();
+  progressUpdateInterval = setInterval(() => {
+    if (!ytPlayer || !isPlaying) return;
+    const currentTime = ytPlayer.getCurrentTime();
+    const duration = ytPlayer.getDuration();
+    if (duration > 0) {
+      const pct = (currentTime / duration) * 100;
+      playerSlider.value = pct;
+      currentTimeEl.textContent = formatDuration(currentTime);
+      totalDurationEl.textContent = formatDuration(duration);
+    }
+  }, 500);
+}
+
+function stopProgressTimer() {
+  if (progressUpdateInterval) {
+    clearInterval(progressUpdateInterval);
+    progressUpdateInterval = null;
+  }
+}
+
+function formatDuration(time) {
+  const mins = Math.floor(time / 60);
+  const secs = Math.floor(time % 60);
+  return `${mins}:${formatTime(secs)}`;
+}
+
+// Attach player event listeners
+function setupPlayerEvents() {
+  playPauseBtn.addEventListener("click", togglePlay);
+  nextTrackBtn.addEventListener("click", nextTrack);
+  prevTrackBtn.addEventListener("click", prevTrack);
+
+  // Allow clicking/dragging the progress bar to seek
+  playerSlider.addEventListener("input", () => {
+    if (!ytPlayer) return;
+    const duration = ytPlayer.getDuration();
+    if (duration > 0) {
+      const targetTime = (playerSlider.value / 100) * duration;
+      currentTimeEl.textContent = formatDuration(targetTime);
+    }
+  });
+
+  playerSlider.addEventListener("change", () => {
+    if (!ytPlayer) return;
+    const duration = ytPlayer.getDuration();
+    if (duration > 0) {
+      const targetTime = (playerSlider.value / 100) * duration;
+      ytPlayer.seekTo(targetTime, true);
+    }
+  });
+
+  // Volume slider controls
+  volumeSlider.addEventListener("input", () => {
+    if (!ytPlayer) return;
+    const volume = volumeSlider.value;
+    ytPlayer.setVolume(volume);
+    if (volume == 0) {
+      mute();
+    } else {
+      unmute(volume);
+    }
+  });
+
+  // Mute button toggle
+  volumeToggleBtn.addEventListener("click", () => {
+    if (isMuted) {
+      const lastVolume = volumeSlider.value == 0 ? 50 : volumeSlider.value;
+      volumeSlider.value = lastVolume;
+      unmute(lastVolume);
+    } else {
+      mute();
+    }
+  });
+}
+
+function mute() {
+  if (!ytPlayer) return;
+  ytPlayer.mute();
+  isMuted = true;
+  volumeOnIcon.classList.add("hidden");
+  volumeOffIcon.classList.remove("hidden");
+}
+
+function unmute(volume) {
+  if (!ytPlayer) return;
+  ytPlayer.unmute();
+  ytPlayer.setVolume(volume);
+  isMuted = false;
+  volumeOnIcon.classList.remove("hidden");
+  volumeOffIcon.classList.add("hidden");
+}
