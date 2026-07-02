@@ -313,17 +313,22 @@ window.addEventListener("DOMContentLoaded", init);
 // BACKGROUND MUSIC PLAYER LOGIC
 // ==========================================
 
-// Load the YouTube Player API asynchronously
-const tag = document.createElement("script");
-tag.src = "https://www.youtube.com/iframe_api";
-const firstScriptTag = document.getElementsByTagName("script")[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+// Fail-safe load timeout: If player doesn't load in 5 seconds (blocked by adblock, offline, or file:// origin blocks), warn the user.
+const playerLoadTimeout = setTimeout(() => {
+  if (!ytPlayer) {
+    trackTitleEl.textContent = "Music connection blocked";
+    trackArtistEl.textContent = "Please allow YouTube or check adblocker";
+    console.warn("YouTube Player API failed to initialize within 5 seconds.");
+  }
+}, 5000);
 
-// This function is automatically triggered by the YouTube Iframe API when ready
+// Define global callback FIRST so YouTube script always finds it on load
 window.onYouTubeIframeAPIReady = function() {
+  const originParam = window.location.origin && window.location.origin !== 'null' ? window.location.origin : '*';
+  
   ytPlayer = new YT.Player("youtube-player-container", {
-    height: "1",
-    width: "1",
+    height: "200", // Standard size to satisfy YT visibility checks
+    width: "300",  
     videoId: playlist[currentTrackIndex].id,
     playerVars: {
       playsinline: 1,
@@ -331,7 +336,8 @@ window.onYouTubeIframeAPIReady = function() {
       disablekb: 1,
       fs: 0,
       rel: 0,
-      modestbranding: 1
+      modestbranding: 1,
+      origin: originParam
     },
     events: {
       onReady: onPlayerReady,
@@ -341,10 +347,35 @@ window.onYouTubeIframeAPIReady = function() {
   });
 };
 
+// Now load the YouTube Player API script
+const tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.body.appendChild(tag); // Inject reliably into document body
+
 function onPlayerReady(event) {
+  // Clear the failure warning timer
+  clearTimeout(playerLoadTimeout);
+  
   // Set initial volume
   ytPlayer.setVolume(volumeSlider.value);
   updateTrackUI();
+  
+  // Try to play immediately (some browsers/configurations allow it)
+  playTrack();
+  
+  // Fallback: Since browsers restrict audio autoplay until user interaction,
+  // we listen for the first user click or touch anywhere on the page to start the music.
+  const startAutoplay = () => {
+    if (ytPlayer && !isPlaying) {
+      playTrack();
+    }
+    // Clean up event listeners immediately after first interaction
+    window.removeEventListener("click", startAutoplay);
+    window.removeEventListener("touchstart", startAutoplay);
+  };
+  
+  window.addEventListener("click", startAutoplay);
+  window.addEventListener("touchstart", startAutoplay);
 }
 
 function onPlayerStateChange(event) {
