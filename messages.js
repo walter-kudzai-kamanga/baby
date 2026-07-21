@@ -117,13 +117,13 @@ const dailyMessages = [
     day: 20,
     date: "July 21",
     title: "Two Weeks Left",
-    text: "Exactly two weeks. Fourteen days. The countdown is reaching single digits of weeks. I am packing my bags and packing all my love for you."
+    text: "Exactly two weeks. Fourteen days. The countdown is reaching single digits of weeks. I am packing all my love for you.Getting ready to meet mudiwa wanguu"
   },
   {
     day: 21,
     date: "July 22",
     title: "The Sweetest Anticipation",
-    text: "They say anticipation makes the reward sweeter. After 36 months of waiting, our reunion is going to be the sweetest thing the universe has ever witnessed."
+    text: "They say anticipation makes the reward sweeter. After more than 36 months of waiting, our reunion is going to be the sweetest thing the universe has ever witnessed."
   },
   {
     day: 22,
